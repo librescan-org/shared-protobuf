@@ -1,0 +1,311 @@
+syntax = "proto3";
+
+option go_package = ".;api";
+
+package service;
+
+service DataAPI {
+    rpc GetBlockByBlockNumber(GetBlockByBlockNumberRequest) returns (BlockResponse) {}
+    rpc GetBlockByBlockHash(GetBlockByBlockHashRequest) returns (BlockResponse) {}
+    rpc GetUncleByHash (GetBlockByBlockHashRequest) returns (GetUncleByHashResponse) {}
+    rpc GetTransactionByHash(GetTransactionRequest) returns (GetTransactionResponse) {}
+    rpc GetSearchTermType (GetSearchTermTypeRequest) returns (GetSearchTermTypeResponse) {}
+    rpc ListBlocks(PaginationRequest) returns (ListBlocksResponse) {}
+    rpc ListTransactions(PaginationRequest) returns (TransactionsListResponse) {}
+    rpc ListTransactionsByBlockNumber(ListTransactionsByBlockNumberRequest) returns (TransactionsListResponse) {}
+    rpc ListTransactionsByAddress(ListTransactionsByAddressRequest) returns (TransactionsListResponse) {}
+    rpc ListErc20TokenTransfers(ListErc20TokenTransfersRequest) returns (ListErc20TokenTransfersResponse) {}
+    rpc ListTracesByBlockNumber(ListTracesByBlockNumberRequest)returns (ListTracesResponse) {}
+    rpc ListTraces(PaginationRequest) returns (ListTracesResponse) {}
+    rpc InspectAddress (InspectAddressRequest) returns (InspectAddressResponse) {}
+}
+
+message PaginationRequest {
+    uint32 Limit = 1;
+    uint64 Offset = 2;
+}
+
+message tokenHolding {
+    string TokenAddress = 1;
+    uint32 Decimals = 2;
+    string Name = 3;
+    string Symbol = 4;
+    string Value = 5;
+}
+
+message walletStatistics {
+    string WeiBalance = 1;
+    repeated tokenHolding TokenHoldings = 2;
+    optional string FirstTxSent = 3;
+    optional string LastTxSent = 4;
+    optional qanAddressData QanAddressData = 5;
+}
+
+message qanAddressData {
+    uint32 Version = 1;
+    uint64 Created = 2;
+    uint64 ValidUntil = 3;
+    bytes XlinkAddress = 4;
+    string Pem = 5;
+}
+
+message qanContractData {
+    string BinaryHash = 1;
+    string Source = 2;
+    string CompilerVersion = 3;
+    string CompressorVersion = 4;
+    string Language = 5;
+}
+
+message contractData {
+    string CreatorAddress = 1;
+    string CreatorTransaction = 2;
+    bytes Bytecode = 3;
+    optional qanContractData QanContractData = 4;
+}
+
+message tokenStatistics {
+    string TokenAddress = 1;
+    uint32 Decimals = 2;
+    string Name = 3;
+    string Symbol = 4;
+    string MaxTotalSupply = 5;
+    uint64 Holders = 6 [jstype = JS_STRING];
+    uint64 TotalTransfers = 7 [jstype = JS_STRING];
+}
+
+message InspectAddressResponse {
+    walletStatistics WalletStatistics = 1;
+    optional contractData ContractData = 2;
+    optional tokenStatistics TokenStatistics = 3;
+}
+
+message InspectAddressRequest {
+    string Address = 1;
+}
+
+message ListTracesByBlockNumberRequest {
+    uint64 BlockNumber = 1;
+    PaginationRequest Pagination = 2;
+}
+
+message ListTracesResponse {
+    repeated Trace Traces = 1;
+    uint64 TotalRecords = 2;
+}
+
+message GetUncleByHashResponse {
+    uncle Uncle = 1;
+}
+
+message Trace {
+    string TransactionHash = 1;
+    uint32 Index = 2;
+    string CallType = 3;
+    bytes Input = 4;
+    string FromAddress = 5;
+    string ToAddress = 6;
+    string Value = 7;
+    uint64 Gas = 8 [jstype = JS_STRING];
+    optional string Error = 9;
+    uint64 BlockNumber = 10;
+    uint64 BlockTimestamp = 11;
+}
+
+message StateChange {
+    string Address = 1;
+    string BalanceBefore = 2;
+    string BalanceAfter = 3;
+    optional uint64 NonceBefore = 4 [jstype = JS_STRING];
+    optional uint64 NonceAfter = 5 [jstype = JS_STRING];
+    repeated StorageChange StorageChanges = 6;
+}
+
+message StorageChange {
+    bytes StorageAddress = 1;
+    bytes ValueBefore = 2;
+    bytes ValueAfter = 3;
+}
+
+message GetSearchTermTypeRequest {
+    string SearchTerm = 1;
+}
+
+message GetSearchTermTypeResponse {
+
+    enum SearchTermType {
+        Address = 0;
+        Transaction = 1;
+        BlockHash = 2;
+        BlockNumber = 3;
+    }
+    
+    SearchTermType Type = 1;
+}
+
+message ListTransactionsByBlockNumberRequest {
+    uint64 BlockNumber = 1;
+    PaginationRequest Pagination = 2;
+}
+
+message Block {
+    string Hash = 1;
+    uint64 Number = 2;
+    string ParentHash = 3;
+    uint64 Nonce = 4 [jstype = JS_STRING];
+    string Sha3Uncles = 5;
+    bytes LogsBloom = 6;
+    string StateRoot = 7;
+    string Miner = 8;
+    string Difficulty = 9;
+    string TotalDifficulty = 10;
+    uint64 Size = 11 [jstype = JS_STRING];
+    bytes ExtraData = 12;
+    uint64 GasLimit = 13 [jstype = JS_STRING];
+    uint64 GasUsed = 14 [jstype = JS_STRING];
+    uint64 Timestamp = 15;
+    uint64 TransactionCount = 16;
+    uint64 TraceCount = 17;
+    optional string BaseFeePerGas = 18;
+    optional string BurntFees = 19;
+    string TransactionFees = 20;
+    string StaticReward = 21;
+    repeated uncle Uncles = 22;
+    string  MixHash = 23;
+}
+
+message Withdrawal {
+    string BlockHash = 1;
+    uint64 Index = 2;
+    uint64 ValidatorIndex = 3;
+    string Amount = 4;
+    string Address = 5;
+}
+
+message uncle {
+    uint64 NephewNumber = 1;
+    string Hash = 2;
+    uint64 Number = 3;
+    string ParentHash = 4;
+    string Miner = 5;
+    string Difficulty = 6;
+    uint64 GasLimit = 7 [jstype = JS_STRING];
+    uint64 GasUsed = 8 [jstype = JS_STRING];
+    uint64 Timestamp = 9;
+    string Reward = 10;
+}
+
+message ListBlocksResponse {
+    repeated Block Blocks = 1;
+    uint64 TotalRecords = 2;
+}
+
+message BlockResponse {
+    Block Block = 1;
+    optional uint64 LatestBlockNumber = 2;
+}
+
+message GetBlockByBlockNumberRequest {
+    uint64 Number = 1;
+}
+
+message GetBlockByBlockHashRequest {
+    string Hash = 1;
+}
+
+message ListTransactionsByAddressRequest{
+    string Address = 1;
+    PaginationRequest Pagination = 2;
+}
+
+message TransactionsListResponse {
+    repeated Transaction Transactions = 1;
+    uint64 TotalRecords = 2;
+}
+
+message Transaction {
+    string Hash = 1;
+    string Method = 2;
+    uint64 Index = 3;
+    string Nonce = 4;
+    string BlockHash = 5;
+    uint64 BlockNumber = 6;
+    string FromAddress = 7;
+    string ToAddress = 8;
+    string Value = 9;
+    uint64 Gas = 10 [jstype = JS_STRING];
+    uint64 GasUsed = 11 [jstype = JS_STRING];
+    string GasPrice = 12;
+    bytes Input = 13;
+    repeated accessObject AccessObjects = 14;
+    uint64 BlockTimestamp = 15;
+    optional string MaxFeePerGas = 16;
+    optional string MaxPriorityFeePerGas = 17;
+    optional string BaseFeePerGas = 18;
+    uint32 TransactionType = 19;
+    string TransactionFee = 20;
+    uint64 ReceiptCumulativeGasUsed = 21 [jstype = JS_STRING];
+    enum receiptStatus {
+        Failure = 0;
+        Success = 1;
+    }
+    receiptStatus ReceiptStatus = 22;
+    optional qanTransactionInput QanTransactionInput = 23;
+}
+
+message qanTransactionInput {
+    uint64 Memory = 1;
+    string Method = 2;
+    repeated string Args = 3;
+}
+
+message accessObject {
+    string Address = 1;
+    repeated bytes StorageKeys = 2;
+}
+
+message GetTransactionRequest {
+    string Hash = 1;
+}
+
+message GetTransactionResponse {
+    Transaction Transaction = 1;
+    repeated Log Logs = 2;
+    repeated Trace Traces = 3;
+    repeated StateChange StateChanges = 4;
+}
+
+message Log {
+    uint64 Index = 1;
+    string Address = 2;
+    optional string EventSignature = 3;
+    optional bytes Topic0 = 4;
+    optional bytes Topic1 = 5;
+    optional bytes Topic2 = 6;
+    optional bytes Topic3 = 7;
+    bytes Data = 8;
+}
+
+message ListErc20TokenTransfersRequest {
+    optional string TokenAddress = 1;
+    optional string FromOrToAddress = 2;
+    PaginationRequest Pagination = 3;
+}
+
+message ListErc20TokenTransfersResponse {
+    repeated erc20TokenTransfer Erc20TokenTransfer = 1;
+    uint64 TotalRecords = 2;
+}
+
+message erc20TokenTransfer {
+    string Method = 1;
+    uint64 BlockTimestamp = 2;
+    string TokenName = 3;
+    string TokenSymbol = 4;
+    string TransactionHash = 5;
+    uint64 LogIndex = 6;
+    string TokenAddress = 7;
+    string FromAddress = 8;
+    string ToAddress = 9;
+    string Value = 10;
+}
